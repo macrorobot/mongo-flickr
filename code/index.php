@@ -1,5 +1,14 @@
 <?php
+
+use MongoDB\Client as MongoDbClient;
 $tag = $_POST['tag'];
+$con = new MongoDB\Driver\Manager("mongodb://localhost:27017");
+
+if($con !== null){
+   echo "Connecté à Mongo !";
+}
+
+
 
 echo "Tag recherché: ".$tag."<br><br>";
 
@@ -28,9 +37,22 @@ $url = "https://api.flickr.com/services/rest/?nojsoncallback=1&".implode('&', $e
 
 # Traitement des résultat pour obtenir la liste de photos
 $results = file_get_contents($url);
+
+$bulk = new MongoDB\Driver\BulkWrite;
+$listPhotos = json_decode($results);
+
+//var_dump($listPhotos);
+$bulk->insert($listPhotos);
+$con->executeBulkWrite('db.MyCollection', $bulk);
+
+//foreach ($listPhotos[photos][photo] as $id => $item) {
+//   $con->insert($item);
+//}
+
 $decoded_json = json_decode($results);
 $photos = $decoded_json->photos->photo;
-
+//echo $results;
 for ($i = 0; $i < count($photos); $i++) {
     echo "<img src='".$photos[$i]->url_s."'>";
+	
 }
