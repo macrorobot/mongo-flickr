@@ -5,7 +5,7 @@ $tag = $_POST['tag'];
 $con = new MongoDB\Driver\Manager("mongodb://localhost:27017");
 
 if($con !== null){
-   echo "Connecté à Mongo !";
+   //echo "Connecté à Mongo !";
 }
 
 
@@ -39,20 +39,37 @@ $url = "https://api.flickr.com/services/rest/?nojsoncallback=1&".implode('&', $e
 $results = file_get_contents($url);
 
 $bulk = new MongoDB\Driver\BulkWrite;
-$listPhotos = json_decode($results);
+$listPhotos = json_decode($results, true);
+$arrayPhotos = json_decode(json_encode($results),true);
 
-//var_dump($listPhotos);
-$bulk->insert($listPhotos);
-$con->executeBulkWrite('db.MyCollection', $bulk);
+$arrayIds = [];
 
-//foreach ($listPhotos[photos][photo] as $id => $item) {
-//   $con->insert($item);
-//}
+$query = new MongoDB\Driver\Query([]);
+$rows = $con->executeQuery('db.FlickrPhotos', $query);
+foreach($rows as $r){
+	echo "<br/><br/>";
+	array_push($arrayIds, json_decode(json_encode($r),true)['id']);
+	$res = json_decode(json_encode($r),true);
+}
+
+$validbulk = 0;
+foreach ($listPhotos['photos']['photo'] as $id => $item) {
+	if (in_array($item['id'], $arrayIds)) {
+		
+	} else {
+		$validbulk = 1;
+		$bulk->insert($item);
+	}
+}
+if($validbulk === 1){
+   $result = $con->executeBulkWrite('db.FlickrPhotos', $bulk);
+}
 
 $decoded_json = json_decode($results);
 $photos = $decoded_json->photos->photo;
-//echo $results;
+
 for ($i = 0; $i < count($photos); $i++) {
     echo "<img src='".$photos[$i]->url_s."'>";
 	
 }
+
