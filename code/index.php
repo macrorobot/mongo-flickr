@@ -41,13 +41,14 @@ $results = file_get_contents($url);
 $bulk = new MongoDB\Driver\BulkWrite;
 $listPhotos = json_decode($results, true);
 $arrayPhotos = json_decode(json_encode($results),true);
-
+if(count($listPhotos['photos']['photo']) === 0) {
+	echo "No images found";
+}
 $arrayIds = [];
 
 $query = new MongoDB\Driver\Query([]);
 $rows = $con->executeQuery('db.FlickrPhotos', $query);
 foreach($rows as $r){
-	echo "<br/><br/>";
 	array_push($arrayIds, json_decode(json_encode($r),true)['id']);
 	$res = json_decode(json_encode($r),true);
 }
