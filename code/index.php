@@ -2,6 +2,10 @@
 
 require('functions.php');
 
+// phpinfo();
+
+// test_mongo();
+
 $tag = $_POST['tag'];
 $min_upload_date = $_POST['min_upload_date'];
 $max_upload_date = $_POST['max_upload_date'];
